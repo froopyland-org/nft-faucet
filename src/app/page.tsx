@@ -1,101 +1,198 @@
-import Image from "next/image";
+"use client";
+import StarField from "@/components/StarField";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipContent } from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  useReadFaucetClaimedErc20,
+  useReadFaucetClaimedNft,
+  useReadFaucetFee,
+  useWriteFaucetClaimErc20,
+  useWriteFaucetClaimNft,
+} from "@/lib/contracts";
+import { ConnectKitButton } from "connectkit";
+import Link from "next/link";
+import { toast } from "sonner";
+import { formatEther } from "viem";
+import { useAccount, useBalance } from "wagmi";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="relative h-screen w-full">
+      <StarField />
+      <div className="container mx-auto h-full flex flex-col items-center justify-center">
+        <Content />
+      </div>
     </div>
   );
 }
+
+const Content = () => {
+  const { isConnected } = useAccount();
+  return (
+    <Card className=" w-[500px] relative">
+      <CardHeader className="w-full space-y-4">
+        <CardTitle className="flex items-center justify-between w-full">
+          <div className="text-2xl font-bold">FROMO Faucet</div>
+          <div className="z-10">
+            {isConnected && (
+              <ConnectKitButton showAvatar={false} showBalance={true} />
+            )}
+          </div>
+        </CardTitle>
+        <CardDescription>
+          Berachain NFT holders can claim 3 Testnet NFTs and 10000 OMO to be
+          used at{" "}
+          <Button variant={"link"} size={"sm"} className="p-0" asChild>
+            <Link href="https://app.fromo.xyz" target="_blank">
+              app.fromo.xyz
+            </Link>
+          </Button>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="py-12">
+        {isConnected ? (
+          <Faucet />
+        ) : (
+          <ConnectKitButton showAvatar={false} showBalance={false} />
+        )}
+      </CardContent>
+      <CardFooter className="text-sm text-gray-500">
+        * Eligible until all test NFTs are claimed
+      </CardFooter>
+    </Card>
+  );
+};
+
+const Faucet = () => {
+  // display a button to claim from faucet
+
+  return (
+    <div className="flex flex-col gap-4">
+      <NFTClaim />
+      <ERC20Claim />
+    </div>
+  );
+};
+const ClaimButton = ({
+  type,
+  buttonText,
+  loadingText,
+  successText,
+  errorText,
+}: {
+  type: "nft" | "erc20";
+  buttonText: string;
+  loadingText: string;
+  successText: string;
+  errorText: string;
+}) => {
+  const { address } = useAccount();
+  const fee = useReadFaucetFee();
+  const userBalance = useBalance({
+    address,
+  });
+  const claimedErc20 = useReadFaucetClaimedErc20({
+    args: [address!],
+    query: {
+      enabled: !!address,
+    },
+  });
+
+  const claimedNft = useReadFaucetClaimedNft({
+    args: [address!],
+    query: { enabled: !!address },
+  });
+
+  const claimErc20 = useWriteFaucetClaimErc20();
+  const claimNft = useWriteFaucetClaimNft();
+
+  const isLoading =
+    fee.isLoading ||
+    userBalance.isLoading ||
+    claimedErc20.isLoading ||
+    claimedNft.isLoading;
+
+  const insufficientBalance =
+    (userBalance.data?.value || 0n) < (fee.data || 0n);
+
+  const isError =
+    insufficientBalance ||
+    (type === "erc20" && claimedErc20.data) ||
+    (type === "nft" && claimedNft.data);
+
+  const claimFunction = type === "nft" ? claimNft : claimErc20;
+
+  return (
+    <TooltipProvider>
+      <Tooltip open={isError ? undefined : false}>
+        <TooltipTrigger asChild>
+          <Button
+            size={"lg"}
+            onClick={() => {
+              if (insufficientBalance) {
+                toast.error(`Must send ${formatEther(fee.data || 0n)} ETH`);
+                return;
+              }
+              toast.promise(
+                claimFunction.writeContractAsync({ value: fee.data }),
+                {
+                  loading: loadingText,
+                  success: successText,
+                  error: errorText,
+                }
+              );
+            }}
+            className={`${isError ? "cursor-not-allowed opacity-50" : ""}`}
+            disabled={isLoading}
+          >
+            {buttonText}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {insufficientBalance && (
+            <p>You must have at least {formatEther(fee.data || 0n)} ETH</p>
+          )}
+          {type === "erc20" && claimedErc20.data && (
+            <p>You have already claimed</p>
+          )}
+          {type === "nft" && claimedNft.data && <p>You have already claimed</p>}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+const NFTClaim = () => {
+  return (
+    <ClaimButton
+      type="nft"
+      buttonText="Claim 3 NFTs"
+      loadingText="Claiming NFT..."
+      successText="NFTs claimed"
+      errorText="Error claiming NFT"
+    />
+  );
+};
+
+const ERC20Claim = () => {
+  return (
+    <ClaimButton
+      type="erc20"
+      buttonText="Claim 10000 OMO"
+      loadingText="Claiming ERC20..."
+      successText="ERC20s claimed"
+      errorText="Error claiming ERC20"
+    />
+  );
+};
