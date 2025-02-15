@@ -662,14 +662,14 @@ export const faucetAbi = [
   },
   {
     type: 'function',
-    inputs: [],
+    inputs: [{ name: 'signature', internalType: 'bytes', type: 'bytes' }],
     name: 'claimERC20',
     outputs: [],
     stateMutability: 'payable',
   },
   {
     type: 'function',
-    inputs: [],
+    inputs: [{ name: 'signature', internalType: 'bytes', type: 'bytes' }],
     name: 'claimNFT',
     outputs: [],
     stateMutability: 'payable',
@@ -731,6 +731,13 @@ export const faucetAbi = [
     name: 'transferOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'usedSignatures',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -2697,6 +2704,17 @@ export const useReadFaucetOwner = /*#__PURE__*/ createUseReadContract({
   abi: faucetAbi,
   address: faucetAddress,
   functionName: 'owner',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link faucetAbi}__ and `functionName` set to `"usedSignatures"`
+ *
+ *
+ */
+export const useReadFaucetUsedSignatures = /*#__PURE__*/ createUseReadContract({
+  abi: faucetAbi,
+  address: faucetAddress,
+  functionName: 'usedSignatures',
 })
 
 /**
@@ -4705,6 +4723,17 @@ export const readFaucetOwner = /*#__PURE__*/ createReadContract({
   abi: faucetAbi,
   address: faucetAddress,
   functionName: 'owner',
+})
+
+/**
+ * Wraps __{@link readContract}__ with `abi` set to __{@link faucetAbi}__ and `functionName` set to `"usedSignatures"`
+ *
+ *
+ */
+export const readFaucetUsedSignatures = /*#__PURE__*/ createReadContract({
+  abi: faucetAbi,
+  address: faucetAddress,
+  functionName: 'usedSignatures',
 })
 
 /**

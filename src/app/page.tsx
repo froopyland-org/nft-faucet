@@ -20,6 +20,7 @@ import {
   useWriteFaucetClaimErc20,
   useWriteFaucetClaimNft,
 } from "@/lib/contracts";
+import { generateClaimSignature } from "@/app/actions";
 import { ConnectKitButton } from "connectkit";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -139,19 +140,29 @@ const ClaimButton = ({
         <TooltipTrigger asChild>
           <Button
             size={"lg"}
-            onClick={() => {
+            onClick={async () => {
               if (insufficientBalance) {
                 toast.error(`Must send ${formatEther(fee.data || 0n)} ETH`);
                 return;
               }
-              toast.promise(
-                claimFunction.writeContractAsync({ value: fee.data }),
-                {
-                  loading: loadingText,
-                  success: successText,
-                  error: errorText,
-                }
-              );
+
+              const claim = async () => {
+                const signature = await generateClaimSignature({
+                  address,
+                  type,
+                });
+
+                return claimFunction.writeContractAsync({
+                  value: fee.data,
+                  args: [signature],
+                });
+              };
+
+              toast.promise(claim(), {
+                loading: loadingText,
+                success: successText,
+                error: errorText,
+              });
             }}
             className={`${isError ? "cursor-not-allowed opacity-50" : ""}`}
             disabled={isLoading}
